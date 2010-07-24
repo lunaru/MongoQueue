@@ -6,10 +6,10 @@ abstract class MongoQueue
 	public static $connection = null;
 	public static $collectionName = 'mongo_queue';
 
-	public static function push($className, $parameters, $when)
+	public static function push($className, $methodName, $parameters, $when)
 	{
 		$collection = self::getCollection();
-		$collection->save(array('object_class' => $className, 'parameters' => $parameters, 'when' => $when));
+		$collection->save(array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters, 'when' => $when));
 	}
 
 	public static function run()
