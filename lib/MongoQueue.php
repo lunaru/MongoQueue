@@ -5,6 +5,7 @@ abstract class MongoQueue
 	public static $database = null;
 	public static $connection = null;
 	public static $environment = null;
+	public static $context = null;
 	public static $collectionName = 'mongo_queue';
 
 	public static function push($className, $methodName, $parameters, $when)
@@ -37,6 +38,16 @@ abstract class MongoQueue
 				$className = $jobRecord['object_class'];
 				$method = isset($jobRecord['object_method']) ? $jobRecord['object_method'] : 'perform';
 				$parameters = isset($jobRecord['parameters']) ? $jobRecord['parameters'] : array();
+				
+				if (self::$context)
+				{
+					foreach (self::$context as $key => $value)
+					{
+						if (property_exists($className, $key))
+							$className::$$key = $value;
+					}
+				}
+				
 				call_user_func_array(array(new $className, $method), $parameters); 
 			}
 
