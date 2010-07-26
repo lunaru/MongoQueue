@@ -4,6 +4,7 @@ abstract class MongoQueue
 {
 	public static $database = null;
 	public static $connection = null;
+	public static $environment = null;
 	public static $collectionName = 'mongo_queue';
 
 	public static function push($className, $methodName, $parameters, $when)
@@ -15,6 +16,7 @@ abstract class MongoQueue
 	public static function run()
 	{
 		$db = self::getDatabase();
+		$environment = self::initializeEnvironment();
 	
 		$job = $db->command(
 			array(
@@ -40,7 +42,11 @@ abstract class MongoQueue
 
 			// remove the job from the queue
 			self::getCollection()->remove(array('_id' => $jobID));
+
+			return true;
 		}
+
+		return false;
 	}
 
 	protected static function getDatabase()
@@ -73,5 +79,19 @@ abstract class MongoQueue
 			self::$connection->connect();
 
 		return self::$connection->selectCollection(self::$database, $collection_name);
+	}
+
+	protected static function initializeEnvironment()
+	{
+		if (self::$environment)
+		{
+			$environment = self::$environment;
+			spl_autoload_register(
+				function ($className) use ($environment) 
+				{
+					require_once($environment . '/' . $className . '.php');
+				}
+			);
+		}
 	}
 }
