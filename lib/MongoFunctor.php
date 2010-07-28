@@ -4,17 +4,17 @@ require_once('MongoQueue.php');
 
 class MongoFunctor
 {
-	protected $delay = 0;
+	protected $when;
 	protected $className = null;
 	
-	public function __construct($className, $delay)
+	public function __construct($className, $when)
 	{
 		$this->className = $className;
-		$this->delay = $delay;
+		$this->when = $when;
 	}
 	public function __call($method, $args)
 	{
-		MongoQueue::push($this->className, $method, $args, time() + $this->delay);
+		MongoQueue::push($this->className, $method, $args, $this->when);
 	}
 }
 

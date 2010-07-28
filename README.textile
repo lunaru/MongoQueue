@@ -1,0 +1,75 @@
+h1. MongoQueue
+
+MongoQueue is a PHP queue that allows for moving tasks and jobs into an asynchronous process for completion in the background. The queue is managed by "Mongo":http://pecl.php.net/package/mongo
+
+MongoQueue is an extraction from online classifieds site "Oodle":http://www.oodle.com. Oodle uses MongoQueue to background common tasks in order to keep page response times low.
+
+h2. Requirements
+
+* PHP 5.3+
+* Mongo PECL
+
+h2. Installation
+
+Extract the source files into a directory in your PHP library path. Because the queue is backed by Mongo, there is no need to migrate or set up a table for MongoQueue. It will use the @mongo_queue@ collection in a database of your choice.
+
+h3. Usage
+
+Before any MongoQueue actions are taken you'll need to initialize the MongoQueue class with the proper settings:
+
+pre.. 
+$mongo = new Mongo('mongodb://host:port', array('connect' => false));
+MongoQueue::$connection = $mongo;
+MongoQueue::$database = 'my_database';
+
+p. 
+Jobs are PHP objects that extend from @MongoJob@. Object states are not serialized so jobs must be defined as @public static function@.
+
+pre.. 
+require_once('MongoQueue/lib/MongoJob.php');
+
+class QueueTracer
+  extends MongoJob
+{
+  public static $context;
+
+  public static function trace()
+  {
+    log_msg('INF', "Tracer hit");
+  }
+}
+
+MongoQueue::push('QueueTracer', 'trace', array(), time() + 500); # run QueueTracer 500 seconds later
+
+p. You can also take advantage of @MongoJob@'s built in @later()@ method which automatically delays a method for asynchronous running:
+
+pre.. 
+QueueTracer::later(500)->trace()
+
+
+h3. Running the jobs
+
+Jobs are run via @MongoQueue::run()@. Before running job, you'll need to set two extra MongoQueue initializers: @environment@ and, optionally, @context@. MongoQueue currently does not include a daemon runner, but here is an example runner:
+
+pre.. 
+$mongo = new Mongo('mongodb://host:port', array('connect' => false));
+MongoQueue::$connection = $mongo;
+MongoQueue::$database = 'my_database';
+MongoQueue::$environment = 'classes/jobs';
+MongoQueue::$context = array('context' => array('foo', 'bar'));
+
+if (MongoQueue::run())
+    echo("Found a job to run");
+else
+    echo("Nothing to run");
+
+p. 
+$environment is the path under which jobs are automatically loaded by the runner. The convention is that if your job class is called @FooBar@ then the file that is loaded is @$environment/FooBar.php@
+
+Any keys set in $context are available as static variables inside the Job class. (e.g. 'context' in the @QueueTracer@ example)
+
+h3. Administration
+
+All jobs are stored as Mongo documents in the mongo_queue collection. @MongoQueue@ does not come with any built in administrative scripts, but you can view the queue via your mongo console. @locked_at@ will tell you whether or not a job is currently being processed.
+
+~                                    
