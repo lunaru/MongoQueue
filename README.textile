@@ -27,25 +27,23 @@ Jobs are PHP objects that extend from @MongoJob@. Object states are not serializ
 
 pre.. 
 require_once('MongoQueue/lib/MongoJob.php');
-
+  
 class QueueTracer
   extends MongoJob
 {
   public static $context;
-
+  
   public static function trace()
   {
     log_msg('INF', "Tracer hit");
   }
 }
-
+  
 MongoQueue::push('QueueTracer', 'trace', array(), time() + 500); # run QueueTracer 500 seconds later
 
 p. You can also take advantage of @MongoJob@'s built in @later()@ method which automatically delays a method for asynchronous running:
 
-pre.. 
-QueueTracer::later(500)->trace()
-
+pre. QueueTracer::later(500)->trace()
 
 h3. Running the jobs
 
