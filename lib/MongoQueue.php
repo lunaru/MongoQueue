@@ -8,10 +8,24 @@ abstract class MongoQueue
 	public static $context = null;
 	public static $collectionName = 'mongo_queue';
 
+	protected static $environmentLoaded = false;
+
 	public static function push($className, $methodName, $parameters, $when)
 	{
 		$collection = self::getCollection();
 		$collection->save(array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters, 'when' => $when));
+	}
+
+	public static function count()
+	{
+		$collection = self::getCollection();
+		
+		return $collection->count(
+			array(
+				'when' => array('$lte' => time()), 
+				'locked' => null
+			)
+		);
 	}
 
 	public static function run()
@@ -94,15 +108,18 @@ abstract class MongoQueue
 
 	protected static function initializeEnvironment()
 	{
-		if (self::$environment)
+		if (self::$environment && !self::$environmentLoaded)
 		{
 			$environment = self::$environment;
+			
 			spl_autoload_register(
 				function ($className) use ($environment) 
 				{
 					require_once($environment . '/' . $className . '.php');
 				}
 			);
+
+			self::$environmentLoaded = true;
 		}
 	}
 }
