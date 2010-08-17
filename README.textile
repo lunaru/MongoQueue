@@ -6,8 +6,9 @@ MongoQueue is an extraction from online classifieds site "Oodle":http://www.oodl
 
 h2. Requirements
 
+* mongod 1.5.4+
 * PHP 5.3+
-* Mongo PECL
+* Mongo PECL (PHP mongo driver)
 
 h2. Installation
 

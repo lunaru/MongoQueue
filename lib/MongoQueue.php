@@ -10,10 +10,38 @@ abstract class MongoQueue
 
 	protected static $environmentLoaded = false;
 
-	public static function push($className, $methodName, $parameters, $when)
+	public static function push($className, $methodName, $parameters, $when, $batch = false)
 	{
-		$collection = self::getCollection();
-		$collection->save(array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters, 'when' => $when));
+		if (!$batch)
+		{
+			$collection = self::getCollection();
+			$collection->save(array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters, 'when' => $when));
+		}
+		else
+		{	
+			$db = self::getDatabase();
+			$collection = self::getCollection();
+			
+			$job = $db->command(
+				array(
+					'findandmodify' => self::$collectionName,
+					'query' => array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters),
+					'update' => array('$inc' => array('batch' => 1)), 
+					'upsert' => true,
+					'new' => true
+				));
+			
+			if ($job['ok'])
+			{
+				$job = $job['value'];
+
+				if (!$job['when'])
+				{
+					$job['when'] = $when;
+					$collection->save($job);
+				}
+			}
+		}
 	}
 
 	public static function count()
