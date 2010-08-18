@@ -7,7 +7,7 @@ abstract class MongoJob
 {
 	public static function later($delay = 0, $batch = false)
 	{
-		return self::at(time() + $delay, $batch;
+		return self::at(time() + $delay, $batch);
 	}
 
 	public static function at($time = null, $batch = false)
