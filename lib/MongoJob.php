@@ -7,7 +7,7 @@ abstract class MongoJob
 {
 	public static function later($delay = 0, $batch = false)
 	{
-		return self::at(time() + $delay, false);
+		return self::at(time() + $delay, $batch;
 	}
 
 	public static function at($time = null, $batch = false)
@@ -25,5 +25,15 @@ abstract class MongoJob
 	public static function batchAt($time = null)
 	{
 		return self::at($time, true);
+	}
+
+	public static function run()
+	{
+		return MongoQueue::run(get_called_class());
+	}
+
+	public static function count()
+	{
+		return MongoQueue::count(get_called_class());
 	}
 }

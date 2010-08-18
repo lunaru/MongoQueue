@@ -35,7 +35,7 @@ abstract class MongoQueue
 			{
 				$job = $job['value'];
 
-				if (!$job['when'])
+				if (!isset($job['when']))
 				{
 					$job['when'] = $when;
 					$collection->save($job);
@@ -44,27 +44,32 @@ abstract class MongoQueue
 		}
 	}
 
-	public static function count()
+	public static function count($class_name = null)
 	{
 		$collection = self::getCollection();
 		
-		return $collection->count(
-			array(
-				'when' => array('$lte' => time()), 
-				'locked' => null
-			)
-		);
+		$query = array('when' => array('$lte' => time()), 'locked' => null);
+	
+		if ($class_name)
+			$query['object_class'] = $class_name;
+	
+		return $collection->count($query);
 	}
 
-	public static function run()
+	public static function run($class_name = null)
 	{
 		$db = self::getDatabase();
 		$environment = self::initializeEnvironment();
+
+		$query = array('when' => array('$lte' => time()), 'locked' => null);
+	
+		if ($class_name)
+			$query['object_class'] = $class_name;
 	
 		$job = $db->command(
 			array(
 				"findandmodify" => self::$collectionName,
-				"query" => array('when' => array('$lte' => time()), 'locked' => null),
+				"query" => $query,
 				"sort" => array('when' => 1),
 				"update" => array('$set' => array('locked' => true, 'locked_at' => time()))
 			));
