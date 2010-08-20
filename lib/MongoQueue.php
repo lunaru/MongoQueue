@@ -25,7 +25,7 @@ abstract class MongoQueue
 			$job = $db->command(
 				array(
 					'findandmodify' => self::$collectionName,
-					'query' => array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters),
+					'query' => array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters, 'locked' => null),
 					'update' => array('$inc' => array('batch' => 1)), 
 					'upsert' => true,
 					'new' => true
