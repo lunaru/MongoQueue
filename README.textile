@@ -47,6 +47,10 @@ You can also take advantage of @MongoJob@'s built in @later()@ method which auto
 
 <pre>QueueTracer::later(500)->trace();</pre>
 
+You can also batch calls which have the same parameter so that they'll only be run once by workers. The run time will be decided by the first job inserted and the subsequent jobs will not have their run times obeyed.
+
+<pre>QueueTracer::batchLater(500)->trace();</pre>
+
 h3. Running the jobs
 
 Jobs are run via @MongoQueue::run()@. Before running job, you'll need to set two extra MongoQueue initializers: @environment@ and, optionally, @context@. MongoQueue currently does not include a daemon runner, but here is an example runner:
@@ -69,6 +73,22 @@ Jobs are run via @MongoQueue::run()@. Before running job, you'll need to set two
 Any keys set in @$context@ are available as static variables inside the Job class. (e.g. 'context' in the @QueueTracer@ example)
 
 h3. Administration
+
+h4. Indexing/Performance
+
+You'll want to add indices to MongoQueue to ensure high performance. You'll need at least the following index for basic operation:
+
+<pre>
+db.mongo_queue.ensureIndex({locked: 1, when: 1});
+</pre>
+
+If you plan to use the batching feature you want an index on the type of jobs already in the queue:
+
+<pre>
+db.mongo_queue.ensureIndex({object_class: 1, object_method: 1, parameters: 1, locked: 1}); 
+</pre>
+
+h4. Monitoring
 
 All jobs are stored as Mongo documents in the mongo_queue collection. @MongoQueue@ does not come with any built in administrative scripts, but you can view the queue via your mongo console. @locked_at@ will tell you whether or not a job is currently being processed.
 

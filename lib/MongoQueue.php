@@ -15,7 +15,14 @@ abstract class MongoQueue
 		if (!$batch)
 		{
 			$collection = self::getCollection();
-			$collection->save(array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters, 'when' => $when));
+			$collection->save(array(
+				'object_class' => $className, 
+				'object_method' => $methodName, 
+				'parameters' => $parameters, 
+				'when' => $when,
+				'locked' => null,
+				'locked_at' => null,
+				'batch' => 1));
 		}
 		else
 		{	
@@ -44,7 +51,7 @@ abstract class MongoQueue
 		}
 	}
 
-	public static function count($class_name = null)
+	public static function hasRunnable($class_name = null)
 	{
 		$collection = self::getCollection();
 		
@@ -53,7 +60,7 @@ abstract class MongoQueue
 		if ($class_name)
 			$query['object_class'] = $class_name;
 	
-		return $collection->count($query);
+		return ($collection->findOne($query) != null);
 	}
 
 	public static function run($class_name = null)
