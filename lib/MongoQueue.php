@@ -42,7 +42,7 @@ abstract class MongoQueue
 			{
 				$job = $job['value'];
 
-				if (!isset($job['when']))
+				if (!isset($job['when']) || $job['when'] > $when)
 				{
 					$job['when'] = $when;
 					$collection->save($job);
