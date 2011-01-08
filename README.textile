@@ -98,6 +98,8 @@ If you initialize @MongoQueue::$connection@ to an array instead of a single Mong
  MongoQueue::$connection = array($mongo1, $mongo2, $mongo3, $mongo4);
 </pre>
 
+MongoQueue will send batchable jobs to the same connection so that batched jobs with identical parameters will not be distribued across multiple mongo instances.
+
 h4. Monitoring
 
 All jobs are stored as Mongo documents in the mongo_queue collection. @MongoQueue@ does not come with any built in administrative scripts, but you can view the queue via your mongo console. @locked_at@ will tell you whether or not a job is currently being processed.
