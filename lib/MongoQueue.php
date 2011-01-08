@@ -26,8 +26,8 @@ abstract class MongoQueue
 		}
 		else
 		{	
-			$db = self::getDatabase();
-			$collection = self::getCollection();
+			$db = self::getDatabase(array('object_class' => $className, 'object_method' => $methodName, 'parameters' => $parameters));
+			$collection = $db->selectCollection(self::$collectionName);
 			
 			$job = $db->command(
 				array(
@@ -106,7 +106,7 @@ abstract class MongoQueue
 			}
 
 			// remove the job from the queue
-			self::getCollection()->remove(array('_id' => $jobID));
+			$db->selectCollection(self::$collectionName)->remove(array('_id' => $jobID));
 
 			return true;
 		}
@@ -114,36 +114,59 @@ abstract class MongoQueue
 		return false;
 	}
 
-	protected static function getDatabase()
+	protected static function getConnection($hint = null)
+	{
+		if (is_array(self::$connection))
+		{
+			$count = count(self::$connection);
+	
+			if (!$hint)
+				$hint = md5(rand());
+			
+			// convert the hint into an index
+			$hint = abs(crc32(serialize($hint)) % $count);
+			
+			return self::$connection[$hint];
+		}
+		else
+		{
+			return self::$connection;
+		}
+	}
+
+	protected static function getDatabase($hint = null)
 	{
 		$collection_name = self::$collectionName;
+		$connection = self::getConnection($hint);
 
 		if (self::$database == null)
 			throw new Exception("BaseMongoRecord::database must be initialized to a proper database string");
 
-		if (self::$connection == null)
+		if ($connection == null)
 			throw new Exception("BaseMongoRecord::connection must be initialized to a valid Mongo object");
 		
-		if (!self::$connection->connected)
-			self::$connection->connect();
+		if (!$connection->connected)
+			$connection->connect();
 
-		return self::$connection->selectDB(self::$database);
+		return $connection->selectDB(self::$database);
 	}
 	
-	protected static function getCollection()
+	protected static function getCollection($hint = null)
 	{
 		$collection_name = self::$collectionName;
+		$connection = self::getConnection($hint);
 
 		if (self::$database == null)
 			throw new Exception("BaseMongoRecord::database must be initialized to a proper database string");
 
-		if (self::$connection == null)
+		if ($connection == null)
 			throw new Exception("BaseMongoRecord::connection must be initialized to a valid Mongo object");
 		
-		if (!self::$connection->connected)
-			self::$connection->connect();
+		
+		if (!$connection->connected)
+			$connection->connect();
 
-		return self::$connection->selectCollection(self::$database, $collection_name);
+		return $connection->selectCollection(self::$database, $collection_name);
 	}
 
 	protected static function initializeEnvironment()

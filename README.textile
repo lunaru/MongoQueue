@@ -85,7 +85,17 @@ db.mongo_queue.ensureIndex({locked: 1, when: 1});
 If you plan to use the batching feature you want an index on the type of jobs already in the queue:
 
 <pre>
-db.mongo_queue.ensureIndex({object_class: 1, object_method: 1, parameters: 1, locked: 1}); 
+ db.mongo_queue.ensureIndex({object_class: 1, object_method: 1, parameters: 1, locked: 1}); 
+</pre>
+
+h4. Sharding
+
+MongoQueue comes with built-in support for manual sharding. Note that due to the key restriction on updates for auto-sharding, the ability to scale with only auto-sharding is limited.
+
+If you initialize @MongoQueue::$connection@ to an array instead of a single Mongo connection object, MongoQueue will insert or pull jobs at random from the set of connections. This way, you can have dedicated workers per physical machine and insert in a distributed way (or vice versa). For example:
+
+<pre>
+ MongoQueue::$connection = array($mongo1, $mongo2, $mongo3, $mongo4);
 </pre>
 
 h4. Monitoring
