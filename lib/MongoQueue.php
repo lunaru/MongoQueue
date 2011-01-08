@@ -51,7 +51,7 @@ abstract class MongoQueue
 		}
 	}
 
-	public static function hasRunnable($class_name = null)
+	public static function hasRunnable($class_name = null, $method_name = null)
 	{
 		$collection = self::getCollection();
 		
@@ -59,11 +59,14 @@ abstract class MongoQueue
 	
 		if ($class_name)
 			$query['object_class'] = $class_name;
+
+		if ($method_name)
+			$query['object_method'] = $method_name;
 	
 		return ($collection->findOne($query) != null);
 	}
 
-	public static function run($class_name = null)
+	public static function run($class_name = null, $method_name = null)
 	{
 		$db = self::getDatabase();
 		$environment = self::initializeEnvironment();
@@ -72,6 +75,9 @@ abstract class MongoQueue
 	
 		if ($class_name)
 			$query['object_class'] = $class_name;
+	
+		if ($method_name)
+			$query['object_method'] = $method_name;
 	
 		$job = $db->command(
 			array(
