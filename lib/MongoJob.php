@@ -12,7 +12,7 @@ abstract class MongoJob
 
 	public static function at($time = null, $batch = false)
 	{
-		if (!$time) $time = time();
+		if ($time === null) $time = time();
 		$className = get_called_class();
 		return new MongoFunctor($className, $time, $batch);
 	}
