@@ -66,6 +66,14 @@ abstract class MongoQueue
 		return ($collection->findOne($query) != null);
 	}
 
+	public static function count()
+	{
+		$collction = self::getCollection();
+
+		$query = array('when' => array('$lte' => time()), 'locked' => null);
+		return $collection->count($query);
+	}
+
 	public static function run($class_name = null, $method_name = null)
 	{
 		$db = self::getDatabase();
