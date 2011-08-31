@@ -55,7 +55,7 @@ abstract class MongoQueue
 	{
 		$collection = self::getCollection();
 		
-		$query = array('when' => array('$lte' => time()), 'locked' => null);
+		$query = array('$or' => array(array('when' => array('$lte' => time())), array('when' => null)), 'locked' => null);
 	
 		if ($class_name)
 			$query['object_class'] = $class_name;
@@ -68,9 +68,9 @@ abstract class MongoQueue
 
 	public static function count()
 	{
-		$collction = self::getCollection();
+		$collection = self::getCollection();
 
-		$query = array('when' => array('$lte' => time()), 'locked' => null);
+		$query = array('$or' => array(array('when' => array('$lte' => time())), array('when' => null)), 'locked' => null);
 		return $collection->count($query);
 	}
 
@@ -79,7 +79,7 @@ abstract class MongoQueue
 		$db = self::getDatabase();
 		$environment = self::initializeEnvironment();
 
-		$query = array('when' => array('$lte' => time()), 'locked' => null);
+		$query = array('$or' => array(array('when' => array('$lte' => time())), array('when' => null)), 'locked' => null);
 	
 		if ($class_name)
 			$query['object_class'] = $class_name;
