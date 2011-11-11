@@ -56,14 +56,15 @@ abstract class MongoQueue
 		$collection = self::getCollection();
 		
 		$query = array('$or' => array(array('when' => array('$lte' => time())), array('when' => null)), 'locked' => null);
-	
+		$fields = array('_id' => 0, 'when' => 1);
+
 		if ($class_name)
 			$query['object_class'] = $class_name;
 
 		if ($method_name)
 			$query['object_method'] = $method_name;
-	
-		return ($collection->findOne($query) != null);
+
+		return ($collection->findOne($query, $fields) != null);
 	}
 
 	public static function count()
