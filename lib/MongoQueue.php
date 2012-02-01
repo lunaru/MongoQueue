@@ -10,7 +10,7 @@ abstract class MongoQueue
 
 	protected static $environmentLoaded = false;
 
-	public static function push($className, $methodName, $parameters, $when, $batch = false)
+	public static function push($className, $methodName, $parameters, $when, $batch = false, $priority = null)
 	{
 		if (!$batch)
 		{
@@ -20,6 +20,7 @@ abstract class MongoQueue
 				'object_method' => $methodName, 
 				'parameters' => $parameters, 
 				'when' => $when,
+				'priority' => $priority,
 				'locked' => null,
 				'locked_at' => null,
 				'batch' => 1));
@@ -41,12 +42,24 @@ abstract class MongoQueue
 			if ($job['ok'])
 			{
 				$job = $job['value'];
+				$touched = false;
 
+				// take the lower 'when'
 				if (!isset($job['when']) || $job['when'] > $when)
 				{
 					$job['when'] = $when;
-					$collection->save($job);
+					$touched = true;
 				}
+
+				// take the higher 'priority'
+				if (!isset($job['priority']) || ($priority !== null && $job['priority'] < $priority))
+				{
+					$job['priority'] = $priority;
+					$touched = true;
+				}
+
+				if ($touched)
+					$collection->save($job);
 			}
 		}
 	}
@@ -74,7 +87,7 @@ abstract class MongoQueue
 		return $collection->count($query);
 	}
 
-	public static function run($class_name = null, $method_name = null)
+	public static function run($class_name = null, $method_name = null, $prioritize = true)
 	{
 		$db = self::getDatabase();
 		$environment = self::initializeEnvironment();
@@ -86,12 +99,17 @@ abstract class MongoQueue
 	
 		if ($method_name)
 			$query['object_method'] = $method_name;
-	
+
+		$sort = array('when' => 1);
+
+		if ($prioritize)
+			$sort = array('priority' => -1, 'when' => 1);
+
 		$job = $db->command(
 			array(
 				"findandmodify" => self::$collectionName,
 				"query" => $query,
-				"sort" => array('when' => 1),
+				"sort" => $sort,
 				"update" => array('$set' => array('locked' => true, 'locked_at' => time()))
 			));
 		

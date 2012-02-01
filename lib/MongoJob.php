@@ -5,26 +5,26 @@ require_once('MongoFunctor.php');
 
 abstract class MongoJob
 {
-	public static function later($delay = 0, $batch = false)
+	public static function later($delay = 0, $batch = false, $priority = null)
 	{
-		return self::at(time() + $delay, $batch);
+		return self::at(time() + $delay, $batch, $priority);
 	}
 
-	public static function at($time = null, $batch = false)
+	public static function at($time = null, $batch = false, $priority = null)
 	{
 		if ($time === null) $time = time();
 		$className = get_called_class();
-		return new MongoFunctor($className, $time, $batch);
+		return new MongoFunctor($className, $time, $batch, $priority);
 	}
 
-	public static function batchLater($delay = 0)
+	public static function batchLater($delay = 0, $priority = null)
 	{
-		return self::later($delay, true);
+		return self::later($delay, true, $priority);
 	}
 
-	public static function batchAt($time = null)
+	public static function batchAt($time = null, $priority = null)
 	{
-		return self::at($time, true);
+		return self::at($time, true, $priority);
 	}
 
 	public static function run()
