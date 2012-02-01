@@ -90,7 +90,7 @@ h4. Indexing/Performance
 You'll want to add indices to MongoQueue to ensure high performance. You'll need at least the following index for basic operation:
 
 <pre>
-db.mongo_queue.ensureIndex({locked: 1, when: 1});
+db.mongo_queue.ensureIndex({locked: 1, when: 1, priority: 1});
 </pre>
 
 If you plan to use the batching feature you want an index on the type of jobs already in the queue:
