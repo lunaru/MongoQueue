@@ -51,6 +51,11 @@ You can also batch calls which have the same parameter so that they'll only be r
 
 <pre>QueueTracer::batchLater(500)->trace();</pre>
 
+MongoQueue also supports prioritization. Priorities are *ascending* and @null@ (the default) is considered to have the lowerst priority.
+
+<pre>QueueTracer::later(500, false, /*priority:*/ 1)->trace();</pre>
+
+
 h3. Running the jobs
 
 Jobs are run via @MongoQueue::run()@. Before running job, you'll need to set two extra MongoQueue initializers: @environment@ and, optionally, @context@. MongoQueue currently does not include a daemon runner, but here is an example runner:
@@ -71,6 +76,12 @@ Jobs are run via @MongoQueue::run()@. Before running job, you'll need to set two
 @$environment@ is the path under which jobs are automatically loaded by the runner. The convention is that if your job class is called @FooBar@ then the file that is loaded is @$environment/FooBar.php@
 
 Any keys set in @$context@ are available as static variables inside the Job class. (e.g. 'context' in the @QueueTracer@ example)
+
+h4. Priorities
+
+By default, MongoQueue will use priorites (which are all @null@ by default). If you want to run the next job regardless of priority, you can pass @false@ as the third param to @run@. e.g:
+
+<pre>MongoQueue::run(null, null, false)</pre>
 
 h3. Administration
 
